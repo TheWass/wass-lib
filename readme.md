@@ -9,8 +9,8 @@ Node-only functions are found here:
 
 JS extensions are found here:
 ```
-    import "@thewass/wass-lib/Extensions/string";
-    import "@thewass/wass-lib/Extensions/array";
+    import "@thewass/wass-lib/extensions/string";
+    import "@thewass/wass-lib/extensions/array";
 ```
 
 Future improvements:

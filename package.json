@@ -1,6 +1,6 @@
 {
   "name": "@thewass/wass-lib",
-  "version": "0.3.0-alpha.0",
+  "version": "0.3.0-alpha.1",
   "license": "MIT",
   "author": "TheWass",
   "description": "This is a TS Library where I keep my commonly used, generic functions and modules consolidated and up to date.",
@@ -26,6 +26,18 @@
       "node": "./dist/cjs/node/index.js",
       "require": "./dist/cjs/node/index.js",
       "default": "./dist/esm/node/index.js"
+    },
+    "./extensions/array": {
+      "types": "./dist/types/extensions/array.d.ts",
+      "node": "./dist/cjs/extensions/array.js",
+      "require": "./dist/cjs/extensions/array.js",
+      "default": "./dist/esm/extensions/array.js"
+    },
+    "./extensions/string": {
+      "types": "./dist/types/extensions/string.d.ts",
+      "node": "./dist/cjs/extensions/string.js",
+      "require": "./dist/cjs/extensions/string.js",
+      "default": "./dist/esm/extensions/string.js"
     },
     "./package.json": "./package.json"
   },
