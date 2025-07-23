@@ -9,6 +9,7 @@ const path = require('path');
 
 const aliasRoot = ['node'];
 const packageName = '@thewass/wass-lib';
+exports.aliasRoot = aliasRoot;
 
 aliasRoot
   .map((alias) => path.resolve(__dirname, `../${alias}`))
