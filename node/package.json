@@ -1,0 +1,6 @@
+{
+  "name": "@thewass/wass-lib/node",
+  "types": "../dist/types/node/index.d.ts",
+  "main": "../dist/cjs/node/index.js",
+  "module": "../dist/esm/node/index.js"
+}

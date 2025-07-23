@@ -14,29 +14,39 @@
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
     "./node": {
+      "types": "./dist/types/index.node.d.ts",
       "import": "./dist/esm/index.node.js",
       "require": "./dist/cjs/index.node.js"
     }
   },
   "files": [
-    "dist"
+    "dist/cjs/**/!(*.tsbuildinfo)",
+    "dist/esm/**/!(*.tsbuildinfo)",
+    "dist/types/**/!(*.tsbuildinfo)",
+    "node",
+    "package.json",
+    "readme.md",
+    "tsconfig.json"
   ],
   "typesVersions": {
-    "*": {
-      "*": ["dist/esm/*"]
+    ">=4.2": {
+      "*": [
+        "dist/types/*"
+      ]
     }
   },
   "scripts": {
     "build:clean": "rm -rf ./dist",
-    "build": "yarn build:clean && yarn compile",
-    "compile": "tsc -b ./tsconfig.esm.json ./tsconfig.cjs.json",
+    "build": "yarn build:clean && yarn compile && node ./scripts/gen-alias.cjs",
+    "compile": "tsc -b ./tsconfig.esm.json ./tsconfig.cjs.json ./tsconfig.types.json",
     "lint": "tsc --noEmit",
     "test": "mocha '**/*.spec.ts'",
     "prepublishOnly": "npm run test && npm run build"

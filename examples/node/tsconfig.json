@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "allowJs": false,
+        "noImplicitAny": true,
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "dist",
+        "moduleResolution": "node",
+        "lib": ["ES2018"],
+        "target": "ES6",
+        "module": "commonjs",
+        "baseUrl": "."
+    },
+    "exclude": ["node_modules"]
+}

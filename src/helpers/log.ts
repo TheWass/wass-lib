@@ -65,12 +65,9 @@ export const truncateObject = <T extends object>(obj: T|null|undefined, sanitize
                 return '********';
             } else if (value.length > 55) {
                 return (value.slice(0, 25) + '...' + value.slice(value.length - 25));
-            } else {
-                return value;
             }
-        } else {
-            return value;
         }
+        return value;
     }
     if (Array.isArray(obj)) {
         const newArray = [] as Array<unknown>;
