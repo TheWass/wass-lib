@@ -1,4 +1,4 @@
-import { primitive } from '../helpers/helpers';
+import { primitive } from '../helpers/helpers.js';
 
 /** List node */
 type Node = {

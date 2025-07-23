@@ -1,2 +1,2 @@
-export * from './groupby';
-export * from './hash';
+export * from './groupby.js';
+export * from './hash.js';

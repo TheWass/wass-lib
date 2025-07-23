@@ -1,4 +1,4 @@
-import { primitive } from './helpers';
+import { primitive } from './helpers.js';
 
 /**
  * Check if the input is a positive float or 0.

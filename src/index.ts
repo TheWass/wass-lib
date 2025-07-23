@@ -1,6 +1,5 @@
-import './extensions/array';
-import './extensions/string';
+import './extensions/array.js';
+import './extensions/string.js';
 
-export * from './helpers';
-export * from './node';
-export * from './utilities';
+export * from './helpers/index.js';
+export * from './utilities/index.js';
