@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import * as crypto from 'node:crypto';
 import { convertToString } from '../helpers/log.js';
 
 export const hashRow = <T extends Record<string, unknown>>(row: T, keys?: Array<string>): string => {
