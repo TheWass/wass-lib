@@ -14,4 +14,12 @@ JS extensions are found here:
 ```
 
 Future improvements:
+* AbortablePromise.
+* AbortableHttpCall.
+
+Requirements for version 1.0:
 * Remove Luxon dependency.
+* JSDoc all functions.
+* Generate API docs for Github pages.
+* E2E tests for Node, React, Browser.
+* Installation instructions in the readme.
