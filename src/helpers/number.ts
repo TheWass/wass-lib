@@ -1,12 +1,10 @@
-import { primitive } from './helpers.js';
-
 /**
  * Check if the input is a positive float or 0.
  * If it's ANYTHING else (null, undef, "", etc.), return false.
  * @param testValue Any input value (usually string or number)
  * @returns True if the number is a positive float or 0.
  */
-export const validatePositiveNumber = function (testValue: primitive): boolean {
+export const validatePositiveNumber = function (testValue: unknown): boolean {
     if (testValue == null) return false;
     const num = parseFloat(testValue.toString());
     return !isNaN(num) && isFinite(num) && num >= 0;
