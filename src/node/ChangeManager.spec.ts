@@ -5,8 +5,8 @@ import '@thewass/wass-lib/extensions/array';
 import '@thewass/wass-lib/extensions/string';
 
 const identifyRows = changeManager.testIdentifyRows;
-const generateUpdateSql = changeManager.testGenerateUpdateSql;
-const generateSelectSql = changeManager.testGenerateSelectSql;
+const generateUpdateSql = changeManager.generateUpdateSql;
+const generateSelectSql = changeManager.generateSelectSql;
 
 describe('ChangeManager', () => {
     describe('IdentifyRows', () => {
@@ -368,7 +368,7 @@ describe('ChangeManager', () => {
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 1, 'Update failed.');
                 assert.isUndefined(results.updateRows[0].c);
-                const sql = generateUpdateSql('test', results.updateRows[0], {});
+                const sql = generateUpdateSql('test', { data: results.updateRows[0], where: {} });
                 // Params will only contain the SET params.
                 assert.deepEqual(sql?.params, ['a1', 'b1', 'd2']);
             });
@@ -385,7 +385,7 @@ describe('ChangeManager', () => {
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 1, 'Update failed.');
                 assert.isUndefined(results.updateRows[0].c);
-                const sql = generateUpdateSql('test', results.updateRows[0], {});
+                const sql = generateUpdateSql('test', { data: results.updateRows[0], where: {} });
                 // Params will only contain the SET params.
                 assert.deepEqual(sql?.params, ['a1', 'b1', 'd2']);
             });
@@ -402,7 +402,7 @@ describe('ChangeManager', () => {
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 1, 'Update failed.');
                 assert.isNull(results.updateRows[0].c);
-                const sql = generateUpdateSql('test', results.updateRows[0], {});
+                const sql = generateUpdateSql('test', { data: results.updateRows[0], where: {} });
                 // Params will only contain the SET params.
                 assert.deepEqual(sql?.params, ['a1', 'b1', null, 'd1']);
             });

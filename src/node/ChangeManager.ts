@@ -22,14 +22,14 @@ interface QueryRow {
  * @param primaryKeys Keys to identify duplicates
  * @param autoPrimaryKey Flag indicating whether or not the ID is an autonumber or not.
  */
-export const GenerateChanges = async <T extends Record<string, unknown>>(
+export const GenerateChanges = <T extends Record<string, unknown>>(
     dbRows: Array<T>,
     newRows: Array<T>,
     table: string,
     updateKeys: Array<string>,
     primaryKeys?: Array<string>,
     autoPrimaryKey: boolean = false
-): Promise<{ insertSqls: Sql[], updateSqls: Sql[], deleteSqls: Sql[], dupeSqls: Sql[] }> => {
+): { insertSqls: Sql[], updateSqls: Sql[], deleteSqls: Sql[], dupeSqls: Sql[], insertCt: number } => {
     const { insertRows, updateRows, deleteRows, dupeRows } = identifyRows(dbRows, newRows, updateKeys, primaryKeys, autoPrimaryKey);
 
     const insertSqls: Array<Sql> = [];
@@ -54,7 +54,103 @@ export const GenerateChanges = async <T extends Record<string, unknown>>(
         return acc;
     }, [] as Array<Sql>);
 
-    return { insertSqls, updateSqls, deleteSqls, dupeSqls };
+    return { insertSqls, updateSqls, deleteSqls, dupeSqls, insertCt: insertRows.length };
+};
+
+export const generateSelectSql = (table: string, where: Record<string, unknown>): Sql => {
+    let sql = 'SELECT * FROM `' + table + '`';
+    const whereIds = Object.keys(where);
+    let whereValues: unknown[] = [];
+    if (whereIds.length > 0) {
+        whereValues = whereIds.map((key) => {
+            const val = where[key];
+            if (val === undefined || (Array.isArray(val) && val.length == 0)) {
+                return null;
+            }
+            if (Array.isArray(val)) {
+                return val.distinct();
+            }
+            return val;
+        }).filterNull();
+        sql += ' WHERE' + generateWhereClause(where);
+    }
+    sql += ';';
+    return {
+        query: sql,
+        params: whereValues
+    };
+};
+
+export const generateInsertSql = (table: string, records: Array<Record<string, unknown>>): Sql|null => {
+    if (records.length == 0) {
+        return null;
+    }
+    let sql = 'INSERT INTO `' + table + '` (';
+    const propIds = Object.keys(records[0]);
+    sql += propIds.map(key => '`' + key + '`').join(', ');
+    sql += ') VALUES ?;';
+    const insertValues: Array<Array<unknown>> = records.map(record =>
+        propIds.map(key => record[key] !== undefined ? record[key] : null)
+    );
+    return {
+        query: sql,
+        params: [insertValues]
+    };
+};
+
+/** This function will only update explicitly.  Any columns not present in record.data will not be modified. */
+export const generateUpdateSql = (table: string, record: QueryRow): Sql|null => {
+    const propIds = Object.keys(record.data).filter(key => record.data[key] !== undefined);
+    if (propIds.length == 0) {
+        return null;
+    }
+    let sql = 'UPDATE `' + table + '` SET';
+    const setStatements = propIds.map(key => ' `' + key + '` = ?');
+    const setValues = propIds.map(key => record.data[key]);
+    sql += setStatements.join(',');
+
+    const whereIds = Object.keys(record.where);
+    let whereValues: unknown[] = [];
+    if (whereIds.length > 0) {
+        whereValues = whereIds.map((key) => {
+            const val = record.where[key];
+            if (val === undefined || (Array.isArray(val) && val.length == 0)) {
+                return null;
+            }
+            if (Array.isArray(val)) {
+                return val.distinct();
+            }
+            return val;
+        }).filterNull();
+        sql += ' WHERE' + generateWhereClause(record.where);
+    }
+    return {
+        query: sql + ';',
+        params: [...setValues, ...whereValues]
+    };
+};
+
+export const generateDeleteSql = (table: string, where: Record<string, unknown>): Sql|null => {
+    const whereIds = Object.keys(where);
+    if (whereIds.length == 0) {
+        return null;
+    }
+    let sql = 'DELETE t FROM `' + table + '` AS t';
+    const whereValues = whereIds.map((key) => {
+        const val = where[key];
+        if (val === undefined || (Array.isArray(val) && val.length == 0)) {
+            return null;
+        }
+        if (Array.isArray(val)) {
+            return val.distinct();
+        }
+        return val;
+    }).filterNull();
+    sql += ' WHERE' + generateWhereClause(where);
+    return {
+        query: sql,
+        params: whereValues
+    };
 };
 
 //#region Test Functions
@@ -78,14 +174,6 @@ export const testIdentifyRows = <T extends Record<string, unknown>>(
     } => {
     return identifyRows(dbRows, newRows, updateKeys, primaryKeys,  autoPrimaryKey);
 }
-
-export const testGenerateUpdateSql = <T extends Record<string, unknown>>(table: string, data: T, where: Record<string, unknown>): Sql|null => {
-    return generateUpdateSql(table, { data, where });
-};
-
-export const testGenerateSelectSql = (table: string, where: Record<string, unknown>): Sql => {
-    return generateSelectSql(table, where);
-};
 //#endregion
 //#region Private Functions
 
@@ -241,102 +329,6 @@ const mapWheres = (data: Record<string, unknown>, updateKeys: Array<string>, pri
         });
     }
     return wStmt;
-};
-
-const generateSelectSql = (table: string, where: Record<string, unknown>): Sql => {
-    let sql = 'SELECT * FROM `' + table + '`';
-    const whereIds = Object.keys(where);
-    let whereValues: unknown[] = [];
-    if (whereIds.length > 0) {
-        whereValues = whereIds.map((key) => {
-            const val = where[key];
-            if (val === undefined || (Array.isArray(val) && val.length == 0)) {
-                return null;
-            }
-            if (Array.isArray(val)) {
-                return val.distinct();
-            }
-            return val;
-        }).filterNull();
-        sql += ' WHERE' + generateWhereClause(where);
-    }
-    sql += ';';
-    return {
-        query: sql,
-        params: whereValues
-    };
-};
-
-const generateInsertSql = (table: string, records: Array<Record<string, unknown>>): Sql|null => {
-    if (records.length == 0) {
-        return null;
-    }
-    let sql = 'INSERT INTO `' + table + '` (';
-    const propIds = Object.keys(records[0]);
-    sql += propIds.map(key => '`' + key + '`').join(', ');
-    sql += ') VALUES ?;';
-    const insertValues: Array<Array<unknown>> = records.map(record =>
-        propIds.map(key => record[key] !== undefined ? record[key] : null)
-    );
-    return {
-        query: sql,
-        params: [insertValues]
-    };
-};
-
-/** This function will only update explicitly.  Any columns not present in record.data will not be modified. */
-const generateUpdateSql = (table: string, record: QueryRow): Sql|null => {
-    const propIds = Object.keys(record.data).filter(key => record.data[key] !== undefined);
-    if (propIds.length == 0) {
-        return null;
-    }
-    let sql = 'UPDATE `' + table + '` SET';
-    const setStatements = propIds.map(key => ' `' + key + '` = ?');
-    const setValues = propIds.map(key => record.data[key]);
-    sql += setStatements.join(',');
-
-    const whereIds = Object.keys(record.where);
-    let whereValues: unknown[] = [];
-    if (whereIds.length > 0) {
-        whereValues = whereIds.map((key) => {
-            const val = record.where[key];
-            if (val === undefined || (Array.isArray(val) && val.length == 0)) {
-                return null;
-            }
-            if (Array.isArray(val)) {
-                return val.distinct();
-            }
-            return val;
-        }).filterNull();
-        sql += ' WHERE' + generateWhereClause(record.where);
-    }
-    return {
-        query: sql + ';',
-        params: [...setValues, ...whereValues]
-    };
-};
-
-const generateDeleteSql = (table: string, where: Record<string, unknown>): Sql|null => {
-    const whereIds = Object.keys(where);
-    if (whereIds.length == 0) {
-        return null;
-    }
-    let sql = 'DELETE t FROM `' + table + '` AS t';
-    const whereValues = whereIds.map((key) => {
-        const val = where[key];
-        if (val === undefined || (Array.isArray(val) && val.length == 0)) {
-            return null;
-        }
-        if (Array.isArray(val)) {
-            return val.distinct();
-        }
-        return val;
-    }).filterNull();
-    sql += ' WHERE' + generateWhereClause(where);
-    return {
-        query: sql,
-        params: whereValues
-    };
 };
 
 const generateWhereClause = (where: Record<string, unknown>): string => {
