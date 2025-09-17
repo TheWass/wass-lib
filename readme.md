@@ -16,6 +16,7 @@ JS extensions are found here:
 Future improvements:
 * AbortablePromise.
 * AbortableHttpCall.
+* Remove node (crypto) dependency from hash.
 
 Requirements for version 1.0:
 * Remove Luxon dependency.
