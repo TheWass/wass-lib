@@ -145,6 +145,8 @@ describe('ChangeManager', () => {
                 assert.equal(results.insertRows[0].a, 'a5');
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 0, 'Update failed.');
+                assert.equal(dbRows.length, 4, 'DBRows input was modified.');
+                assert.equal(newRows.length, 9, 'NewRows input was modified.');
             });
             it('Existing dupes', () => {
                 const updateKeys = ['a', 'b', 'c'];
@@ -169,6 +171,8 @@ describe('ChangeManager', () => {
                 // identifyRows operates in reverse order.
                 assert.equal(results.deleteRows[0].a, 'a3');
                 assert.equal(results.deleteRows[1].a, 'a1');
+                assert.equal(dbRows.length, 6, 'DBRows input was modified.');
+                assert.equal(newRows.length, 4, 'NewRows input was modified.');
             });
             it('Never Insert Dupes', () => {
                 const updateKeys = ['a', 'b', 'c'];

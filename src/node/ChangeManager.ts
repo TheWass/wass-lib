@@ -191,13 +191,15 @@ const identifyRows = <T extends Record<string, unknown>> (
         updateRows: Array<T>,
         deleteRows: Array<T>,
         dupeRows: Array<T>
-    } => {
-
+} => {
+    // Clone the rows to avoid modifying the originals.
+    const dbRowsCpy = dbRows.map(r => ({ ...r }));
+    let newRowsCpy = newRows.map(r => ({ ...r }));
     const dbHashedRows = new Map();
     const dupeHashedRows = new Map();
     //Iterate in reverse for removal.
-    for (let i = dbRows.length - 1; i >= 0; i--) {
-        const row = dbRows[i];
+    for (let i = dbRowsCpy.length - 1; i >= 0; i--) {
+        const row = dbRowsCpy[i];
         const hash = hashRow(row, [ ...updateKeys ]);
         if (dbHashedRows.has(hash)) {
             // This is a duplicate in the database.  Splice it out of the where clause.
@@ -206,15 +208,15 @@ const identifyRows = <T extends Record<string, unknown>> (
                 const phash = hashRow(row, [ ...primaryKeys, ...updateKeys ]);
                 dupeHashedRows.set(phash, row);
             }
-            dbRows.splice(i, 1);
+            dbRowsCpy.splice(i, 1);
             continue;
         } 
         dbHashedRows.set(hash, row);
     }
 
     const newHashedRows = new Map();
-    for (let i = newRows.length - 1; i >= 0; i--) {
-        const row = newRows[i];
+    for (let i = newRowsCpy.length - 1; i >= 0; i--) {
+        const row = newRowsCpy[i];
         // Missing update keys are set to null.
         for (let k = updateKeys.length - 1; k >= 0; k--) {
             const ukey = updateKeys[k] as keyof T;
@@ -226,7 +228,7 @@ const identifyRows = <T extends Record<string, unknown>> (
         const hash = hashRow(row, [ ...updateKeys ]);
         if (newHashedRows.has(hash)) {
             // Found an incoming duplicate.  Remove it.
-            newRows.splice(i, 1);
+            newRowsCpy.splice(i, 1);
             continue;
         }
         newHashedRows.set(hash, row);
@@ -234,18 +236,18 @@ const identifyRows = <T extends Record<string, unknown>> (
 
     // If no dbRows, all are inserts.
     // If no newRows, all are deletes.
-    if (dbRows.length == 0 || newRows.length == 0) {
+    if (dbRowsCpy.length == 0 || newRowsCpy.length == 0) {
         if (primaryKeys != null && primaryKeys.length > 0 && autoPrimaryKey) {
             // Inserts can *never* have primary keys.  Remove them.
-            newRows = newRows.map(r => {
+            newRowsCpy = newRowsCpy.map(r => {
                 primaryKeys.forEach(k => { delete r[k]; });
                 return r;
             });
         }
         return {
-            insertRows: newRows,
+            insertRows: newRowsCpy,
             updateRows: [],
-            deleteRows: dbRows,
+            deleteRows: dbRowsCpy,
             dupeRows: []
         };
     }
