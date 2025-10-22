@@ -9,19 +9,32 @@ export type GroupBy<K> = {
 
 export const groupBy = <T extends Record<string, unknown>>(array: T[], grouping: GroupBy<T>): Group<T>[] => {
     const keys = grouping.keys;
-    if (array.length > 0 && !keys.every(key => key in array[0])) throw 'One of the grouping.keys was not found in one of the elements in the array.';
-    const groups = array.reduce((groups, item) => {
-        const group = groups.find((g: Group<T>) => keys.every(key => item[key] === g.key[key]));
-        const itemCopy = Object.getOwnPropertyNames(item).reduce((o, key) => ({ ...o, [key]: item[key] }), {} as T);
-        return group ?
-            groups.map((g: Group<T>) => (g === group ? { key: g.key, items: [...g.items, itemCopy] } : g)) :
-            [
-                ...groups,
-                {
-                    key: keys.reduce((o, key) => ({ ...o, [key]: item[key] }), {} as Partial<T>),
-                    items: [itemCopy]
-                }
-            ];
-    }, [] as Group<T>[]);
-    return groups;
+    if (array.length > 0 && !keys.every(key => key in array[0])) {
+        throw new Error('One of the grouping.keys was not found in one of the elements in the array.');
+    }
+    
+    const groupMap = new Map<string, Group<T>>();
+    
+    for (const item of array) {
+        const keyValues = keys.map(key => `${String(key)}:${String(item[key])}`).join('\u001f');
+        const itemCopy = { ...item };
+        
+        // Check if we already have this group
+        if (groupMap.has(keyValues)) {
+            groupMap.get(keyValues)!.items.push(itemCopy);
+        } else {
+            // Extract the key values
+            const keyObj = keys.reduce((obj, key) => {
+                obj[key] = item[key];
+                return obj;
+            }, {} as Partial<T>);
+            
+            // Create a new group
+            groupMap.set(keyValues, {
+                key: keyObj,
+                items: [itemCopy]
+            });
+        }
+    }
+    return Array.from(groupMap.values());
 };
