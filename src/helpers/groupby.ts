@@ -16,7 +16,7 @@ export const groupBy = <T extends Record<string, unknown>>(array: T[], grouping:
     const groupMap = new Map<string, Group<T>>();
     
     for (const item of array) {
-        const keyValues = keys.map(key => `${String(key)}:${String(item[key])}`).join('\u001f');
+        const keyValues = keys.map(key => `${String(key)}\u001f${String(item[key])}`).join('\u001e');
         const itemCopy = { ...item };
         
         // Check if we already have this group
