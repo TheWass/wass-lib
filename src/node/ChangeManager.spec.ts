@@ -452,6 +452,58 @@ describe('ChangeManager', () => {
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 0, 'Update failed.');
             });
+            it('handles 0.00 to 0', () => {
+                const updateKeys = ['a'];
+                const dbRows = [
+                    { a: 'a1', b: 'b1', c: '0.00', d: 'd1' },
+                ];
+                const newRows = [
+                    { a: 'a1', b: 'b1', c: '0', d: 'd1' },
+                ];
+                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys);
+                assert.equal(results.insertRows.length, 0, 'Insert failed.');
+                assert.equal(results.deleteRows.length, 0, 'Delete failed.');
+                assert.equal(results.updateRows.length, 0, 'Update failed.');
+            });
+            it('handles 0 to 0.00', () => {
+                const updateKeys = ['a'];
+                const dbRows = [
+                    { a: 'a1', b: 'b1', c: '0', d: 'd1' },
+                ];
+                const newRows = [
+                    { a: 'a1', b: 'b1', c: '0.00', d: 'd1' },
+                ];
+                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys);
+                assert.equal(results.insertRows.length, 0, 'Insert failed.');
+                assert.equal(results.deleteRows.length, 0, 'Delete failed.');
+                assert.equal(results.updateRows.length, 0, 'Update failed.');
+            });
+            it('handles false to 0', () => {
+                const updateKeys = ['a'];
+                const dbRows = [
+                    { a: 'a1', b: 'b1', c: false, d: 'd1' },
+                ];
+                const newRows = [
+                    { a: 'a1', b: 'b1', c: '0', d: 'd1' },
+                ];
+                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys);
+                assert.equal(results.insertRows.length, 0, 'Insert failed.');
+                assert.equal(results.deleteRows.length, 0, 'Delete failed.');
+                assert.equal(results.updateRows.length, 0, 'Update failed.');
+            });
+            it('handles 0 to false', () => {
+                const updateKeys = ['a'];
+                const dbRows = [
+                    { a: 'a1', b: 'b1', c: '0', d: 'd1' },
+                ];
+                const newRows = [
+                    { a: 'a1', b: 'b1', c: false, d: 'd1' },
+                ];
+                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys);
+                assert.equal(results.insertRows.length, 0, 'Insert failed.');
+                assert.equal(results.deleteRows.length, 0, 'Delete failed.');
+                assert.equal(results.updateRows.length, 0, 'Update failed.');
+            });
         });
         describe('Edge cases', () => {
             it('New dupes with update first', () => {
