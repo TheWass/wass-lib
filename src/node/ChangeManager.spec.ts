@@ -229,7 +229,7 @@ describe('ChangeManager', () => {
                     { a: 'a7', b: 'b7', c: 'c7', d: 'd7' },
                     { a: 'a8', b: 'b8', c: 'c8', d: 'd8' },
                 ];
-                const results = identifyRows(dbRows, newRows, updateKeys, primaryKeys, true);
+                const results = identifyRows(dbRows, newRows, updateKeys, { primaryKeys, autoPrimaryKey: true });
                 assert.equal(results.insertRows.length, 1, 'Insert failed.');
                 assert.equal(results.deleteRows.length, 2, 'Delete failed.');
                 assert.equal(results.updateRows.length, 3, 'Update failed.');
@@ -255,7 +255,7 @@ describe('ChangeManager', () => {
                     { p: 6, a: 'a8', b: 'b8', c: 'c7', d: 'd7' }, //nochange
                     {       a: 'a9', b: 'b9', c: 'c8', d: 'd8' }, //nochange
                 ];
-                const results = identifyRows(dbRows, newRows, updateKeys, primaryKeys, true);
+                const results = identifyRows(dbRows, newRows, updateKeys, { primaryKeys, autoPrimaryKey: true });
                 assert.equal(results.insertRows.length, 2, 'Insert failed.');
                 // All inserted rows should never have primary keys
                 assert.equal(results.insertRows[0].p, null); // Not strictly null, undefined is OK.
@@ -281,7 +281,7 @@ describe('ChangeManager', () => {
                     { b: 'b3', c: 'c3', d: 'd3' },
                     { b: 'b4', c: 'c4', d: 'd4' },
                 ];
-                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys, primaryKeys, true);
+                const results = identifyRows<Record<string, unknown>>(dbRows, newRows, updateKeys, { primaryKeys, autoPrimaryKey: true });
                 assert.equal(results.insertRows.length, 0, 'Insert failed.');
                 assert.equal(results.deleteRows.length, 0, 'Delete failed.');
                 assert.equal(results.updateRows.length, 0, 'Update failed.');
@@ -310,7 +310,7 @@ describe('ChangeManager', () => {
                     { a: 'a7', b: 'b7', c: 'c7', d: 'd7' },
                     { a: 'a8', b: 'b8', c: 'c8', d: 'd8' },
                 ];
-                const results = identifyRows(dbRows, newRows, updateKeys, updateKeys, false);
+                const results = identifyRows(dbRows, newRows, updateKeys, { primaryKeys: updateKeys, autoPrimaryKey: false });
                 assert.equal(results.insertRows.length, 1, 'Insert failed.');
                 assert.equal(results.deleteRows.length, 2, 'Delete failed.');
                 assert.equal(results.updateRows.length, 3, 'Update failed.');

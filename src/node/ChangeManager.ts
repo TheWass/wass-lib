@@ -12,25 +12,32 @@ interface QueryRow {
     where: Record<string, unknown>;
 }
 
+export interface TableConfig {
+    /** Keys to identify duplicates.  If omitted, duplicates will not be identified. */
+    primaryKeys?: Array<string>;
+    /** Flag indicating whether or not the ID is an autonumber. */
+    autoPrimaryKey?: boolean;
+    /** Keys to ignore during the detect changes step. */
+    ignoreKeys?: string[];
+};
+
 /** 
  * NewRows will replace DBRows.  
  * SQL statements will be generated based on the update keys and primary keys.
  * @param dbRows Existing rows from the database to change.
  * @param newRows New rows to replace existing rows
- * @param table Table to target
  * @param updateKeys Keys to differentiate between an insert/delete and an update
- * @param primaryKeys Keys to identify duplicates
- * @param autoPrimaryKey Flag indicating whether or not the ID is an autonumber or not.
+ * @param tableConfig Configuration for the target table
  */
 export const GenerateChanges = <T extends Record<string, unknown>>(
     dbRows: Array<T>,
     newRows: Array<T>,
     table: string,
     updateKeys: Array<string>,
-    primaryKeys?: Array<string>,
-    autoPrimaryKey: boolean = false
+    tableConfig?: TableConfig
 ): { insertSqls: Sql[], updateSqls: Sql[], deleteSqls: Sql[], dupeSqls: Sql[], insertCt: number } => {
-    const { insertRows, updateRows, deleteRows, dupeRows } = identifyRows(dbRows, newRows, updateKeys, primaryKeys, autoPrimaryKey);
+    const { primaryKeys } = tableConfig ?? {};
+    const { insertRows, updateRows, deleteRows, dupeRows } = identifyRows(dbRows, newRows, updateKeys, tableConfig);
 
     const insertSqls: Array<Sql> = [];
     for (let i = 0, len = insertRows.length, chunk = 100; i < len; i += chunk) {
@@ -159,20 +166,20 @@ export const generateDeleteSql = (table: string, where: Record<string, unknown>)
  * @param dbRows Existing rows from the database
  * @param newRows New rows in the database
  * @param updateKeys Keys to differentiate between an insert/delete and an update
- * @param autoPrimaryKey If included, this will remove duplicates in the database.
+ * @param options Options for the change manager
  */
 export const testIdentifyRows = <T extends Record<string, unknown>>(
     dbRows: Array<T>,
     newRows: Array<T>,
     updateKeys: Array<string>,
-    primaryKeys?: Array<string>,
-    autoPrimaryKey: boolean = false): {
+    tableConfig?: TableConfig
+): {
         insertRows: Array<T>,
         updateRows: Array<T>,
         deleteRows: Array<T>,
         dupeRows: Array<T>
     } => {
-    return identifyRows(dbRows, newRows, updateKeys, primaryKeys,  autoPrimaryKey);
+    return identifyRows(dbRows, newRows, updateKeys, tableConfig);
 }
 //#endregion
 //#region Private Functions
@@ -185,13 +192,15 @@ const identifyRows = <T extends Record<string, unknown>> (
     dbRows: Array<T>,
     newRows: Array<T>,
     updateKeys: Array<string>,
-    primaryKeys?: Array<string>,
-    autoPrimaryKey: boolean = false): {
+    tableConfig?: TableConfig
+): {
         insertRows: Array<T>,
         updateRows: Array<T>,
         deleteRows: Array<T>,
         dupeRows: Array<T>
-} => {
+    } => {
+    const { autoPrimaryKey, ignoreKeys, primaryKeys } = tableConfig ?? {};
+
     // Clone the rows to avoid modifying the originals.
     const dbRowsCpy = dbRows.map(r => ({ ...r }));
     let newRowsCpy = newRows.map(r => ({ ...r }));
@@ -237,8 +246,8 @@ const identifyRows = <T extends Record<string, unknown>> (
     // If no dbRows, all are inserts.
     // If no newRows, all are deletes.
     if (dbRowsCpy.length == 0 || newRowsCpy.length == 0) {
-        if (primaryKeys != null && primaryKeys.length > 0 && autoPrimaryKey) {
-            // Inserts can *never* have primary keys.  Remove them.
+        if (autoPrimaryKey && primaryKeys != null && primaryKeys.length > 0) {
+            // Inserts can *never* have auto primary keys.  Remove them.
             newRowsCpy = newRowsCpy.map(r => {
                 primaryKeys.forEach(k => { delete r[k]; });
                 return r;
@@ -269,7 +278,7 @@ const identifyRows = <T extends Record<string, unknown>> (
         // Instead of doing this, maybe, we could hash the whole object...
         for (let index = 0; index < newKeys.length; index++) {
             const key = newKeys[index];
-            if (key == 'ModifiedAt' || key == 'CreatedAt') {
+            if (Array.isArray(ignoreKeys) && ignoreKeys.includes(key)) {
                 continue; // to the next key.
             }
             let dbVal = dbRow[key];
@@ -307,8 +316,8 @@ const identifyRows = <T extends Record<string, unknown>> (
     const deleteRows = Array.from(dbHashedRows.values());
     const dupeRows = Array.from(dupeHashedRows.values())
 
-    if (primaryKeys != null && primaryKeys.length > 0 && autoPrimaryKey) {
-        // Inserts can *never* have primary keys.  Remove them.
+    if (autoPrimaryKey && primaryKeys != null && primaryKeys.length > 0) {
+        // Inserts can *never* have auto primary keys.  Remove them.
         insertRows = insertRows.map(r => {
             primaryKeys.forEach(k => { delete r[k]; });
             return r;
