@@ -19,6 +19,8 @@ export interface TableConfig {
     autoPrimaryKey?: boolean;
     /** Keys to ignore during the detect changes step. */
     ignoreKeys?: string[];
+    /** Keys which should be updated, but not awaited.  If these are the only keys updating, the update itself will not be awaited. */
+    metadataKeys?: Array<string>;
 };
 
 /** 
@@ -35,9 +37,9 @@ export const GenerateChanges = <T extends Record<string, unknown>>(
     table: string,
     updateKeys: Array<string>,
     tableConfig?: TableConfig
-): { insertSqls: Sql[], updateSqls: Sql[], deleteSqls: Sql[], dupeSqls: Sql[], insertCt: number } => {
+): { insertSqls: Sql[], updateSqls: Sql[], updateNoAwaitSqls: Sql[], deleteSqls: Sql[], dupeSqls: Sql[], insertCt: number } => {
     const { primaryKeys } = tableConfig ?? {};
-    const { insertRows, updateRows, deleteRows, dupeRows } = identifyRows(dbRows, newRows, updateKeys, tableConfig);
+    const { insertRows, updateRows, updateNoAwaitRows, deleteRows, dupeRows } = identifyRows(dbRows, newRows, updateKeys, tableConfig);
 
     const insertSqls: Array<Sql> = [];
     for (let i = 0, len = insertRows.length, chunk = 100; i < len; i += chunk) {
@@ -46,6 +48,11 @@ export const GenerateChanges = <T extends Record<string, unknown>>(
         if (sql != null) insertSqls.push(sql);
     }
     const updateSqls: Array<Sql> = updateRows.reduce((acc, data) => {
+        const sql = generateUpdateSql(table, { data, where: mapWheres(data, updateKeys, primaryKeys) });
+        if (sql != null) acc.push(sql);
+        return acc;
+    }, [] as Array<Sql>);
+    const updateNoAwaitSqls: Array<Sql> = updateNoAwaitRows.reduce((acc, data) => {
         const sql = generateUpdateSql(table, { data, where: mapWheres(data, updateKeys, primaryKeys) });
         if (sql != null) acc.push(sql);
         return acc;
@@ -61,7 +68,7 @@ export const GenerateChanges = <T extends Record<string, unknown>>(
         return acc;
     }, [] as Array<Sql>);
 
-    return { insertSqls, updateSqls, deleteSqls, dupeSqls, insertCt: insertRows.length };
+    return { insertSqls, updateSqls, updateNoAwaitSqls, deleteSqls, dupeSqls, insertCt: insertRows.length };
 };
 
 export const generateSelectSql = (table: string, where: Record<string, unknown>): Sql => {
@@ -176,6 +183,7 @@ export const testIdentifyRows = <T extends Record<string, unknown>>(
 ): {
         insertRows: Array<T>,
         updateRows: Array<T>,
+        updateNoAwaitRows: Array<T>,
         deleteRows: Array<T>,
         dupeRows: Array<T>
     } => {
@@ -196,10 +204,11 @@ const identifyRows = <T extends Record<string, unknown>> (
 ): {
         insertRows: Array<T>,
         updateRows: Array<T>,
+        updateNoAwaitRows: Array<T>,
         deleteRows: Array<T>,
         dupeRows: Array<T>
     } => {
-    const { autoPrimaryKey, ignoreKeys, primaryKeys } = tableConfig ?? {};
+    const { autoPrimaryKey, ignoreKeys, primaryKeys, metadataKeys } = tableConfig ?? {};
 
     // Clone the rows to avoid modifying the originals.
     const dbRowsCpy = dbRows.map(r => ({ ...r }));
@@ -256,12 +265,14 @@ const identifyRows = <T extends Record<string, unknown>> (
         return {
             insertRows: newRowsCpy,
             updateRows: [],
+            updateNoAwaitRows: [],
             deleteRows: dbRowsCpy,
             dupeRows: []
         };
     }
 
     const updateRows: Array<T> = [];
+    const updateNoAwaitRows: Array<T> = [];
     for (const [keyHash, newRow] of newHashedRows) {
         const dbRow = dbHashedRows.get(keyHash);
         // If we did not find a db row, this is not an update.
@@ -274,6 +285,7 @@ const identifyRows = <T extends Record<string, unknown>> (
         dbHashedRows.delete(keyHash);
         // Keys match. This could be an update. Check if the data does not match...
         let dataDoesNotMatch = false;
+        let onlyMetadataUpdated = true;
         const newKeys = Object.keys(newRow);
         // Instead of doing this, maybe, we could hash the whole object...
         for (let index = 0; index < newKeys.length; index++) {
@@ -301,12 +313,19 @@ const identifyRows = <T extends Record<string, unknown>> (
             newVal = convertToString(newVal);
             if (dbVal != newVal) {
                 dataDoesNotMatch = true;
-                break; // from the key loop
+                onlyMetadataUpdated &&= (Array.isArray(metadataKeys) && metadataKeys.includes(key));
+                // If we only have metadata keys updating, we need to continue checking.  
+                // We might have a non-metadata key that also updates, which would require an awaited update.
+                if (!onlyMetadataUpdated) break;
             }
         } // EndFor (key loop)
 
         if (dataDoesNotMatch) {
-            updateRows.push(newRow);
+            if (onlyMetadataUpdated) {
+                updateNoAwaitRows.push(newRow);
+            } else {
+                updateRows.push(newRow);
+            }
         }
     } // EndFor (newHash loop)
 
@@ -323,7 +342,7 @@ const identifyRows = <T extends Record<string, unknown>> (
             return r;
         });
     }
-    return { insertRows, updateRows, deleteRows, dupeRows };
+    return { insertRows, updateRows, updateNoAwaitRows, deleteRows, dupeRows };
 };
 
 const mapWheres = (data: Record<string, unknown>, updateKeys: Array<string>, primaryKeys?: Array<string>): Record<string, unknown> => {

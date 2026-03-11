@@ -598,6 +598,33 @@ describe('ChangeManager', () => {
                 assert.equal(results.updateRows.length, 1, 'Update failed.');
             });
         });
+        describe('NoAwaitUpdate distinction', () => {
+            it('distinguishes noAwaitUpdates from updates', () => {
+                const updateKeys = ['a', 'b'];
+                const dbRows = [
+                    { a: 'a2', b: 'b2', c: 'c2', d: 'd2' },
+                    { a: 'a3', b: 'b3', c: 'c3', d: 'd3' },
+                    { a: 'a4', b: 'b4', c: 'c4', d: 'd4' },
+                    { a: 'a5', b: 'b5', c: 'c5', d: 'd5' },
+                    { a: 'a6', b: 'b6', c: 'c6', d: 'd6' },
+                    { a: 'a7', b: 'b7', c: 'c7', d: 'd7' },
+                    { a: 'a8', b: 'b8', c: 'c8', d: 'd8' },
+                ];
+                const newRows = [
+                    { a: 'a1', b: 'b1', c: 'c2', d: 'd2' },
+                    { a: 'a4', b: 'b4', c: 'c4', d: 'd5' },
+                    { a: 'a5', b: 'b5', c: 'c6', d: 'd6' },
+                    { a: 'a6', b: 'b6', c: 'c7', d: 'd6' },
+                    { a: 'a7', b: 'b7', c: 'c7', d: 'd7' },
+                    { a: 'a8', b: 'b8', c: 'c8', d: 'd8' },
+                ];
+                const results = identifyRows(dbRows, newRows, updateKeys, { metadataKeys: ['d'] });
+                assert.equal(results.insertRows.length, 1, 'Insert failed.');
+                assert.equal(results.deleteRows.length, 2, 'Delete failed.');
+                assert.equal(results.updateRows.length, 2, 'Update failed.');
+                assert.equal(results.updateNoAwaitRows.length, 1, 'UpdateNoAwaitRows failed.');
+            });
+        });
     });
     describe('GenerateSelect', () => {
         // This also excersizes the function to generate the where clause shared with update and delete.
