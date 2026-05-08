@@ -87,10 +87,14 @@ describe('ES6Promise', () => {
             assert(++ExecCounter == 4, 'Fourth');
             resolve(nestedPromise.then(() => {
                 assert(++ExecCounter == 7, 'Seventh');
+                console.log(ExecCounter);
             }));
             assert(++ExecCounter == 5, 'Fifth');
-        }).then(async () => {
-            assert(++ExecCounter == 8, 'Eighth');
+            nestedPromise.then(() => {
+                assert(++ExecCounter == 8, 'Eighth');
+            });
+        }).then(() => {
+            assert(++ExecCounter == 9, 'Ninth');
             done();
         });
         assert(++ExecCounter == 6, 'Sixth');
@@ -112,7 +116,27 @@ describe('ES6Promise', () => {
         promise.then(() => done());
     });
 
-    it('Does not Then twice', (done) => {
+    it('Does handle multiple thens', (done) => {
+        let ThenCounter = 0;
+        const promise = new Promise<void>((resolve) => {
+            setTimeout(() => {
+                ++ThenCounter;
+                resolve();
+            }, 0);
+        });
+        promise.then(() => {
+            ++ThenCounter;
+        });
+        promise.then(() => {
+            ++ThenCounter;
+        });
+        setTimeout(() => {
+            assert(ThenCounter == 3);
+            done();
+        }, 5);
+    });
+
+    it('Does not Resolve twice', (done) => {
         let ThenCounter = 0;
         let ResolveCounter = 0;
         const promise = new Promise<void>((resolve) => {
@@ -135,7 +159,7 @@ describe('ES6Promise', () => {
         }, 5);
     });
 
-    it('Does not Catch twice', (done) => {
+    it('Does not Reject twice', (done) => {
         let CatchCounter = 0;
         let RejectCounter = 0;
         const promise = new Promise<void>((resolve, reject) => {
@@ -158,7 +182,7 @@ describe('ES6Promise', () => {
         }, 5);
     });
 
-    it('Does not Catch after Resolving', (done) => {
+    it('Does not Reject after Resolving', (done) => {
         let ThenCounter = 0;
         let CatchCounter = 0;
         let ResolveCounter = 0;
@@ -188,7 +212,7 @@ describe('ES6Promise', () => {
         }, 5);
     });
 
-    it('Does not Then after Rejecting', (done) => {
+    it('Does not Resolve after Rejecting', (done) => {
         let ThenCounter = 0;
         let CatchCounter = 0;
         let ResolveCounter = 0;
