@@ -74,6 +74,36 @@ describe('ES6Promise', () => {
         assert(++ExecCounter == 5, 'Fifth');
     });
 
+    it('Continues to Execute in order', (done) => {
+        let ExecCounter = 0;
+        assert(++ExecCounter == 1, 'First');
+        const promise = new Promise<void>((resolve) => {
+            assert(++ExecCounter == 2, 'Second');
+            const nestedPromise = new Promise<void>((resolve2) => {
+                assert(++ExecCounter == 3, 'Third');
+                resolve2();
+            });
+            assert(++ExecCounter == 4, 'Fourth');
+            resolve(nestedPromise.then(() => {
+                assert(++ExecCounter == 8, 'Eighth');
+            }));
+            assert(++ExecCounter == 5, 'Fifth');
+        }).then(async () => {
+            assert(++ExecCounter == 9, 'Ninth');
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            assert(++ExecCounter == 10, 'Tenth');
+        });
+        assert(++ExecCounter == 6, 'Sixth');
+        promise.finally(() => {
+            assert(++ExecCounter == 11, 'Eleventh');
+        });
+        promise.then(() => {
+            assert(++ExecCounter == 12, 'Twelfth');
+            done();
+        });
+        assert(++ExecCounter == 7, 'Seventh');
+    });
+
     it('Does not execute on Then', (done) => {
         let ExecCounter = 0;
         const promise = new Promise<void>((resolve) => {
