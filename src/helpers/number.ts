@@ -4,7 +4,7 @@
  * @param testValue Any input value (usually string or number)
  * @returns True if the number is a positive float or 0.
  */
-export const validatePositiveNumber = function (testValue: unknown): boolean {
+export const validatePositiveNumber = function (testValue: unknown): testValue is number {
     if (testValue == null) return false;
     const num = parseFloat(testValue.toString());
     return !isNaN(num) && isFinite(num) && num >= 0;
