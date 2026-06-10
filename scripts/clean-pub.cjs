@@ -1,8 +1,4 @@
-const fs = require('fs-extra');
-const path = require('path');
-const aliasRoot = require('./gen-alias.cjs').aliasRoot;
+const fs = require('node:fs');
+const path = require('node:path');
 
-fs.removeSync(path.resolve(__dirname, `../dist`));
-aliasRoot
-  .map((alias) => path.resolve(__dirname, `../${alias}`))
-  .forEach(alias => { fs.removeSync(alias); });
+fs.rmSync(path.resolve(__dirname, '../dist'), { recursive: true, force: true });

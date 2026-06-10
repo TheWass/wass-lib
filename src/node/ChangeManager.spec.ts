@@ -1,8 +1,11 @@
 import { assert } from 'chai';
 import { describe, it } from 'mocha';
 import * as changeManager from './ChangeManager.js';
-import '@thewass/wass-lib/extensions/array';
-import '@thewass/wass-lib/extensions/string';
+import { applyArrayExtensions } from '../extensions/array.js';
+import { applyStringExtensions } from '../extensions/string.js';
+
+applyArrayExtensions();
+applyStringExtensions();
 
 const identifyRows = changeManager.testIdentifyRows;
 const generateUpdateSql = changeManager.generateUpdateSql;

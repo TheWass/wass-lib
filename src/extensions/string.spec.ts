@@ -1,6 +1,8 @@
 import { assert } from 'chai';
 import { describe, it } from 'mocha';
-import './string';
+import { applyStringExtensions } from './string.js';
+
+applyStringExtensions();
 
 describe('StringExtensions', () => {
     describe('NaturalCompare', () => {

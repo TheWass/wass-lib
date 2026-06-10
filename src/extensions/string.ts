@@ -8,16 +8,26 @@ declare global {
     }
 }
 
-if (!String.prototype.capitalizeFirstLetter) {
-    String.prototype.capitalizeFirstLetter = function (this: string) {
-        return this.charAt(0).toUpperCase() + this.slice(1);
-    };
-}
+const defineStringExtension = <K extends keyof String>(key: K, value: String[K]) => {
+    if (Object.prototype.hasOwnProperty.call(String.prototype, key)) {
+        return;
+    }
+    Object.defineProperty(String.prototype, key, {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: false
+    });
+};
 
-if (!String.prototype.naturalCompare) {
-    String.prototype.naturalCompare = function (this: string, other: string, locales?: string | string[], options: Intl.CollatorOptions = {}): number {
+export const applyStringExtensions = (): void => {
+    defineStringExtension('capitalizeFirstLetter', function (this: string) {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    });
+
+    defineStringExtension('naturalCompare', function (this: string, other: string, locales?: string | string[], options: Intl.CollatorOptions = {}): number {
         options.numeric = true;
         options.sensitivity = options.sensitivity || 'base';
         return new Intl.Collator(locales, options).compare(this, other);
-    };
-}
+    });
+};

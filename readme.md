@@ -1,26 +1,48 @@
 WassLib
 -------
-This is a TS Library where I keep my commonly used, generic functions and modules consolidated and up to date.
+Common TypeScript and JavaScript helpers for Node and browser-focused projects.
 
-Node-only functions are found here: 
-```
-    import {} from "@thewass/wass-lib/node";
+Requirements
+------------
+- Node 20+
+
+Build
+-----
+One-click build (CJS + ESM + types):
+
+```bash
+npm run build
 ```
 
-JS extensions are found here:
-```
-    import "@thewass/wass-lib/extensions/string";
-    import "@thewass/wass-lib/extensions/array";
+The build emits:
+- `dist/cjs` for CommonJS consumers
+- `dist/esm` for ESM and modern bundlers
+- `dist/types` for TypeScript type definitions
+
+Imports
+-------
+```ts
+import { date2Sql } from '@thewass/wass-lib';
+import { hashRow } from '@thewass/wass-lib/node';
+import { convertToString } from '@thewass/wass-lib/helpers';
 ```
 
-Future improvements:
-* AbortablePromise.
-* AbortableHttpCall.
-* Remove node (crypto) dependency from hash.
+Extension APIs (Breaking)
+-------------------------
+String and Array prototype extensions are now opt-in and are not applied at import time.
 
-Requirements for version 1.0:
-* Remove Luxon dependency.
-* JSDoc all functions.
-* Generate API docs for Github pages.
-* E2E tests for Node, React, Browser.
-* Installation instructions in the readme.
+```ts
+import { applyStringExtensions } from '@thewass/wass-lib/extensions/string';
+import { applyArrayExtensions } from '@thewass/wass-lib/extensions/array';
+
+applyStringExtensions();
+applyArrayExtensions();
+
+const title = 'example'.capitalizeFirstLetter();
+const chunks = [1, 2, 3, 4].splitToGroupsOf(2);
+```
+
+Migration Notes
+---------------
+- Replace side-effect extension imports with explicit `apply*Extensions()` calls.
+- Package subpaths are resolved through `exports` and target modern tooling.

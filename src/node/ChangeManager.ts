@@ -1,5 +1,5 @@
-import { convertToString, date2Sql } from '../helpers';
-import { hashRow } from '.';
+import { convertToString, date2Sql } from '../helpers/index.js';
+import { hashRow } from './hash.js';
 import { DateTime } from 'luxon';
 
 export interface Sql {
