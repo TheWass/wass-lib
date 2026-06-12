@@ -4,13 +4,18 @@
   "main": "index.js",
   "scripts": {
     "start": "rm -rf dist && tsc && tsc-alias && node ./dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
     "chai": "^5.2.1",
-    "mocha": "^11.7.1"
+    "eslint": "^10.4.1",
+    "mocha": "^11.7.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0"
   },
   "dependencies": {
     "@thewass/wass-lib": "file:/Users/alexwasser/projects/repos/wass-lib",

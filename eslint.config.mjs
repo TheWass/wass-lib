@@ -1,24 +1,21 @@
-// @ts-check
-
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config({
-    files: ['*.ts', '*.tsx'],
-    ignores: ['dist/*', 'dist*/*', 'node_modules/*', 'scripts/*'],
-    extends: [
-        eslint.configs.recommended,
-        tseslint.configs.recommended,
+export const baseConfig = [
+    {
+        ignores: ['dist/*', 'dist*/*', 'node_modules/*', 'scripts/*'],
+    },
+    eslint.configs.recommended,
+    tseslint.configs.recommendedTypeChecked,
+    {
+        rules: 
         {
-            rules: 
-            {
-                '@typescript-eslint/no-unused-vars': ['warn', {
-                    argsIgnorePattern: '^_',
-                    varsIgnorePattern: '^_',
-                }],
+            '@typescript-eslint/no-unused-vars': ['warn', {
+                argsIgnorePattern: '^_',
+                varsIgnorePattern: '^_',
+            }],
 
-                quotes: ['error', 'single'],
-            },
-        }
-    ]
-});
+            quotes: ['error', 'single'],
+        },
+    }
+];

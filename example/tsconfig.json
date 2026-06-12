@@ -5,14 +5,13 @@
         "noImplicitAny": true,
         "sourceMap": true,
         "skipLibCheck": true,
-        "strict": false,
+        "strict": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "dist",
         "moduleResolution": "node16",
         "module": "node16",
         "lib": ["ES2018"],
-        "target": "ES6",
-        "baseUrl": "."
+        "target": "ES6"
     },
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "dist"]
 }
