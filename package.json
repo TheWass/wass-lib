@@ -1,6 +1,6 @@
 {
   "name": "@thewass/wass-lib",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "license": "MIT",
   "author": "TheWass",
   "description": "This is a TS Library where I keep my commonly used, generic functions and modules consolidated and up to date.",
@@ -14,58 +14,39 @@
   "engines": {
     "node": ">=20"
   },
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
-  "sideEffects": [
-    "./dist/esm/extensions/array.js",
-    "./dist/esm/extensions/string.js",
-    "./dist/cjs/extensions/array.js",
-    "./dist/cjs/extensions/string.js"
-  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./helpers": {
-      "types": "./dist/types/helpers/index.d.ts",
-      "import": "./dist/esm/helpers/index.js",
-      "require": "./dist/cjs/helpers/index.js",
-      "default": "./dist/esm/helpers/index.js"
+      "types": "./dist/helpers/index.d.ts",
+      "default": "./dist/helpers/index.js"
     },
     "./utilities": {
-      "types": "./dist/types/utilities/index.d.ts",
-      "import": "./dist/esm/utilities/index.js",
-      "require": "./dist/cjs/utilities/index.js",
-      "default": "./dist/esm/utilities/index.js"
+      "types": "./dist/utilities/index.d.ts",
+      "default": "./dist/utilities/index.js"
     },
     "./node": {
-      "types": "./dist/types/node/index.d.ts",
-      "import": "./dist/esm/node/index.js",
-      "require": "./dist/cjs/node/index.js",
-      "default": "./dist/esm/node/index.js"
+      "types": "./dist/node/index.d.ts",
+      "default": "./dist/node/index.js"
     },
     "./extensions/array": {
-      "types": "./dist/types/extensions/array.d.ts",
-      "import": "./dist/esm/extensions/array.js",
-      "require": "./dist/cjs/extensions/array.js",
-      "default": "./dist/esm/extensions/array.js"
+      "types": "./dist/extensions/array.d.ts",
+      "default": "./dist/extensions/array.js"
     },
     "./extensions/string": {
-      "types": "./dist/types/extensions/string.d.ts",
-      "import": "./dist/esm/extensions/string.js",
-      "require": "./dist/cjs/extensions/string.js",
-      "default": "./dist/esm/extensions/string.js"
+      "types": "./dist/extensions/string.d.ts",
+      "default": "./dist/extensions/string.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist/cjs/**/!(*.tsbuildinfo)",
-    "dist/esm/**/!(*.tsbuildinfo)",
-    "dist/types/**/!(*.tsbuildinfo)",
+    "dist/**/!(*.tsbuildinfo)",
     "LICENSE.md",
     "package.json",
     "readme.md"
@@ -73,14 +54,14 @@
   "typesVersions": {
     ">=4.2": {
       "*": [
-        "dist/types/*"
+        "dist/*"
       ]
     }
   },
   "scripts": {
-    "build:clean": "node ./scripts/clean-pub.cjs",
+    "build:clean": "node ./scripts/clean-pub.mjs",
     "build": "npm run build:clean && npm run compile",
-    "compile": "tsc -b ./src/tsconfig.esm.json ./src/tsconfig.cjs.json ./src/tsconfig.types.json",
+    "compile": "tsc -b ./src/tsconfig.build.json",
     "lint": "tsc --noEmit",
     "build:verify": "npm run lint",
     "test": "mocha '**/*.spec.ts'",

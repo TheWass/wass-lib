@@ -8,10 +8,10 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "dist",
-        "moduleResolution": "node16",
-        "module": "node16",
-        "lib": ["ES2018"],
-        "target": "ES6"
+        "moduleResolution": "nodenext",
+        "module": "nodenext",
+        "lib": ["ES2022"],
+        "target": "ES2022"
     },
     "exclude": ["node_modules", "dist"]
 }
