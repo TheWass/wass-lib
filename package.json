@@ -1,6 +1,6 @@
 {
   "name": "@thewass/wass-lib",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "license": "MIT",
   "author": "TheWass",
   "description": "This is a TS Library where I keep my commonly used, generic functions and modules consolidated and up to date.",
@@ -71,7 +71,7 @@
     "@eslint/js": "^10.0.1",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^25.9.3",
+    "@types/node": "^25.9.5",
     "chai": "^6.2.2",
     "eslint": "^10.4.1",
     "mocha": "^11.7.6",

@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import { DateTime } from 'luxon';
 import { describe, it } from 'mocha';
 import { convertToString, truncateObject } from './log';
+import { Buffer } from 'buffer';
 
 describe('NodeHelpers', () => {
     describe('ConvertToString', () => {
@@ -196,6 +197,22 @@ describe('NodeHelpers', () => {
             const result = truncateObject(test, true);
             assert.deepEqual(result, target);
         });
+        it('should truncate Buffer objects', () => {
+            const test = {
+                thing: 1,
+                longboi: Buffer.from([48,130,5,77,2,1,1,2,2,3,4,4,2,19,2,4,32,85,121,176,26,36,188,247,58,213,41,46,253,124,184,242,186,28,211,75,231,250,109,190,89,250,235,48,204,18,94,80,211,4,48,97,235,
+                    96,244,174,89,199,92,58,119,171,138,87,29,26,176,33,180,79,240,2,234,34,204,112,241,193,85,221,163,97,154,1,121,60,235,55,199,240,195,62,163,49,115,88,122,36,131,161,6,2,4,
+                    102,186,19,88,162,4,2,2,28,32,163,130,3,157,48,130,3,153,48,130,3,32,160,3,2,1,2,2,18,4,118,225,204,24,120,36,84,183,15,229,243,57,42,87,85,166,170,48,10,6,8,42,134,72,206,
+                    61,4,3,3,48,50,49,11,48,9,6,3,85,4,6,19,2,85,83,49,22,48,20,6,3,85,4,10,19,13,76,101,116,39,115,32,69,110,99,114,121,112,116,49,11,48,9,6,3,85,4,3,19,2,69,53,48,30,23,13,50,
+                    52,48,55,49,53,49,56,53,52,50,48,90,23,13,50,52,49,48,49,51,49,56,53,52,49,57,90,48,39,49,37,48,35,6,3,85,4,3,19,28])
+            };
+            const target = {
+                thing: 1,
+                longboi: 'Buffer(259)'
+            };
+            const result = truncateObject(test, true);
+            assert.deepEqual(result, target);
+        });
         it('should ignore properties preceeded with an underscore.', () => {
             const test = {
                 thing: 1,
@@ -214,6 +231,32 @@ describe('NodeHelpers', () => {
             };
             const result = truncateObject(test, true);
             assert.isUndefined(result?.longboi._ignore);
+            assert.deepEqual(result, target);
+        });
+        it('should mask forbidden arrays',() => {
+            const test = {
+                thing: 1,
+                longboi: {
+                    prevSecrets: [
+                        'oFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNh',
+                        'oFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3J',
+                        'hcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew5KjO9',
+                        'hoFfdUQuvv00WD3Jhcew5KjO9Ag9FWpNhoFfdUQuvv00WD3Jhcew'
+                    ]
+                }
+            };
+            const target = {
+                thing: 1,
+                longboi: {
+                    prevSecrets: [
+                        '********',
+                        '********',
+                        '********',
+                        '********'
+                    ]
+                }
+            };
+            const result = truncateObject(test, true);
             assert.deepEqual(result, target);
         });
     });

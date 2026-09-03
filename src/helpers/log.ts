@@ -49,13 +49,18 @@ type Entries<T> = { [K in keyof T]-?: [K, T[K]]; }[keyof T][];
 const FORBIDDEN_KEYS = ['key', 'id', 'user', 'pass', 'secret'];
 export const truncateObject = <T extends object>(obj: T|null|undefined, sanitize = false, level = 0): T|null|undefined => {
     if (level > 5) return null;
-    if (obj == null) return obj;
+    if (obj == null || typeof obj !== 'object') return obj;
     const processValue = (value: unknown, key: string, lvl: number): unknown => {
-        if (value instanceof DateTime) {
+        if (Array.isArray(value)) {
+            return value.map((v) => processValue(v, key, lvl + 1));
+        } else if (value instanceof DateTime) {
             if (value.hour == 0 && value.minute == 0 && value.second == 0 && value.millisecond == 0) {
                 return value.toISODate();
             }
         } else if (typeof value == 'object' && value != null) {
+            if (value instanceof Buffer) {
+                return 'Buffer(' + value.length + ')';
+            }
             if ('data' in value && Array.isArray(value.data) && 'type' in value && value.type == 'Buffer') {
                 value.data = ['Buffer(' + value.data.length + ')'];
             }
@@ -70,11 +75,7 @@ export const truncateObject = <T extends object>(obj: T|null|undefined, sanitize
         return value;
     }
     if (Array.isArray(obj)) {
-        const newArray = [] as Array<unknown>;
-        obj.forEach((value, key) => {
-            newArray.push(processValue(value, key.toString(), level));
-        });
-        return newArray as T;
+        return obj.map((v, i) => processValue(v, i+'', level + 1)) as T;
     } else {
         const newObj = {} as T;
         (Object.entries(obj) as Entries<T>).forEach(([key, value]) => {
